@@ -5,6 +5,7 @@ import Header from './components/Header/Header';
 import Home from './pages/Home/Home';
 import Auth from './pages/Auth/Auth';
 import Onboarding from './pages/Onboarding/Onboarding';
+import Dashboard from './pages/Dashboard/Dashboard';
 import { authService } from './utils/auth';
 import './styles/global.css';
 
@@ -17,7 +18,22 @@ function ProtectedOnboarding({ children }) {
   }
 
   if (hasCompletedOnboarding) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
+function ProtectedDashboard({ children }) {
+  const isAuthenticated = authService.isAuthenticated();
+  const hasCompletedOnboarding = authService.hasCompletedOnboarding();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (!hasCompletedOnboarding) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return children;
@@ -41,18 +57,26 @@ function App() {
         <div className="app">
           <Header />
           <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route 
-                path="/onboarding" 
-                element={
-                  <ProtectedOnboarding>
-                    <Onboarding />
-                  </ProtectedOnboarding>
-                } 
-              />
-            </Routes>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route 
+              path="/onboarding" 
+              element={
+                <ProtectedOnboarding>
+                  <Onboarding />
+                </ProtectedOnboarding>
+              } 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedDashboard>
+                  <Dashboard />
+                </ProtectedDashboard>
+              } 
+            />
+          </Routes>
           </main>
         </div>
       </Router>

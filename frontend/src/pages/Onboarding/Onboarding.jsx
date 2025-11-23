@@ -91,15 +91,20 @@ function Onboarding() {
     }
   };
 
-  const handleComplete = () => {
-    const preferences = {
-      cryptoAssets,
-      investorType,
-      contentTypes,
-    };
+  const handleComplete = async () => {
+    try {
+      const preferences = {
+        cryptoAssets,
+        investorType,
+        contentTypes,
+      };
 
-    authService.savePreferences(preferences);
-    navigate('/');
+      await authService.savePreferences(preferences);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      // You could add error handling UI here
+    }
   };
 
   const renderStep = () => {

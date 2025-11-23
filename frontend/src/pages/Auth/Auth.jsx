@@ -21,7 +21,7 @@ function Auth() {
         // Check onboarding status from authService
         const hasCompletedOnboarding = authService.hasCompletedOnboarding();
         if (hasCompletedOnboarding) {
-          navigate('/');
+          navigate('/dashboard');
         } else {
           // User who hasn't completed onboarding
           navigate('/onboarding');
