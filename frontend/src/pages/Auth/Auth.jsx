@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../../utils/auth';
 import LoginForm from '../../components/Auth/LoginForm';
 import SignupForm from '../../components/Auth/SignupForm';
 import './Auth.css';
@@ -10,11 +11,23 @@ function Auth() {
   const navigate = useNavigate();
 
   const handleAuthSuccess = (result) => {
-    setSuccessMessage(mode === 'login' ? 'Login successful!' : 'Account created successfully!');
-    // Redirect to home page after a short delay
-    setTimeout(() => {
-      navigate('/');
-    }, 1500);
+    if (mode === 'signup') {
+      // For signup, redirect immediately to onboarding
+      navigate('/onboarding');
+    } else {
+      // For login, show success message and redirect after delay
+      setSuccessMessage('Login successful!');
+      setTimeout(() => {
+        // Check onboarding status from authService
+        const hasCompletedOnboarding = authService.hasCompletedOnboarding();
+        if (hasCompletedOnboarding) {
+          navigate('/');
+        } else {
+          // User who hasn't completed onboarding
+          navigate('/onboarding');
+        }
+      }, 1500);
+    }
   };
 
   const handleAuthError = (error) => {

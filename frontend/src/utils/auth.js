@@ -34,6 +34,43 @@ export const authService = {
     return userStr ? JSON.parse(userStr) : null;
   },
 
+  // Check if user has completed onboarding
+  hasCompletedOnboarding: () => {
+    const user = authService.getUser();
+    return user && user.onboarded === true;
+  },
+
+  // Save user preferences
+  savePreferences: (preferences) => {
+    const user = authService.getUser();
+    if (user) {
+      const updatedUser = {
+        ...user,
+        preferences,
+        onboarded: true,
+      };
+      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      
+      // Also update in users array
+      const users = getUsers();
+      const userIndex = users.findIndex(u => u.email === user.email);
+      if (userIndex !== -1) {
+        users[userIndex] = {
+          ...users[userIndex],
+          preferences,
+          onboarded: true,
+        };
+        saveUsers(users);
+      }
+    }
+  },
+
+  // Get user preferences
+  getPreferences: () => {
+    const user = authService.getUser();
+    return user && user.preferences ? user.preferences : null;
+  },
+
   // Check if user is authenticated
   isAuthenticated: () => {
     return !!localStorage.getItem(TOKEN_KEY);
@@ -69,6 +106,8 @@ export const authService = {
     const mockUser = {
       email: user.email,
       name: user.name,
+      onboarded: user.onboarded || false,
+      preferences: user.preferences || null,
     };
     
     authService.setAuth(mockToken, mockUser);
@@ -104,6 +143,8 @@ export const authService = {
     const mockUser = {
       email: newUser.email,
       name: newUser.name,
+      onboarded: false, // New users haven't completed onboarding
+      preferences: null,
     };
     
     authService.setAuth(mockToken, mockUser);

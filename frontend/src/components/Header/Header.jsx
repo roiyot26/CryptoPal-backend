@@ -1,3 +1,4 @@
+import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import './Header.css';
 
 function Header() {
@@ -5,6 +6,7 @@ function Header() {
     <header className="header">
       <div className="header-container">
         <h1 className="header-logo">CryptoPal</h1>
+        <ThemeToggle />
       </div>
     </header>
   );
