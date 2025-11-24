@@ -1,7 +1,7 @@
 // Auth utility functions for API integration
 // Use relative URLs in production (same domain), localhost in development
 const isProduction = import.meta.env.PROD || (typeof window !== 'undefined' && window.location.hostname !== 'localhost');
-const API_BASE_URL = import.meta.env.VITE_API_URL || (isProduction ? '/api' : 'http://localhost:5001/api');
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (isProduction ? '/api' : 'http://localhost:5001/api');
 
 const TOKEN_KEY = 'cryptopal_token';
 const USER_KEY = 'cryptopal_user';

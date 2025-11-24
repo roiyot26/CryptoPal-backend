@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import VoteButtons from './VoteButtons';
-import { authService } from '../../utils/auth';
+import { authService, API_BASE_URL } from '../../utils/auth';
 import './SectionStyles.css';
 import './NewsSection.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 function NewsSection() {
   const [news, setNews] = useState([]);

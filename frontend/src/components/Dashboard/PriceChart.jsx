@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { authService } from '../../utils/auth';
+import { authService, API_BASE_URL } from '../../utils/auth';
 import './PriceChart.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 const TIME_PERIODS = [
   { label: 'D', fullLabel: 'Daily', days: '1' },
