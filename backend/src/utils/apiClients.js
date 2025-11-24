@@ -1,7 +1,7 @@
 // API Client utilities for external API calls
 
 export const cryptopanicClient = async (endpoint, params = {}) => {
-  const apiKey = process.env.CRYPTOPANIC_API_KEY || 'a99e5c3ffb5190c39855b2a1579cdacf4e9fa546';
+  const apiKey = process.env.CRYPTOPANIC_API_KEY;
   if (!apiKey) {
     throw new Error('CryptoPanic API key not configured');
   }
@@ -97,7 +97,7 @@ const tryOpenRouterRequest = async (apiKey, messages, model) => {
 };
 
 export const openRouterClient = async (messages, model = null) => {
-  const apiKey = process.env.OPENROUTER_API_KEY || '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';
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error('OpenRouter API key not configured');
   }
@@ -135,7 +135,7 @@ export const openRouterClient = async (messages, model = null) => {
 };
 
 export const memeClient = async (endpoint, params = {}) => {
-  const apiKey = process.env.MEME_API_KEY || '81882d3d936441cfa8c57cce32c4f76b';
+  const apiKey = process.env.MEME_API_KEY;
   if (!apiKey) {
     throw new Error('Meme API key not configured');
   }
