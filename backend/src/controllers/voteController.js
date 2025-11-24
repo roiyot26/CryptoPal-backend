@@ -2,6 +2,17 @@ import Vote from '../models/Vote.js';
 
 const MAX_VOTER_NAMES = 5;
 
+const decodeContentId = (id = '') => {
+  if (typeof id !== 'string') {
+    return id;
+  }
+  try {
+    return decodeURIComponent(id);
+  } catch (error) {
+    return id;
+  }
+};
+
 const createEmptySummary = () => ({
   counts: { upvotes: 0, downvotes: 0 },
   userVote: null,
@@ -53,7 +64,9 @@ const buildVoteSummary = async (userId, contentType, contentId) => {
 // @access  Private
 export const createVote = async (req, res, next) => {
   try {
-    const { contentType, contentId, voteType } = req.body;
+    const { contentType, voteType } = req.body;
+    const rawContentId = req.body.contentId;
+    const contentId = decodeContentId(rawContentId);
 
     if (!contentType || !contentId || !voteType) {
       return res.status(400).json({
@@ -150,7 +163,8 @@ export const createVote = async (req, res, next) => {
 // @access  Private
 export const getVoteCounts = async (req, res, next) => {
   try {
-    const { contentType, contentId } = req.params;
+    const { contentType } = req.params;
+    const contentId = decodeContentId(req.params.contentId);
 
     const summary = await buildVoteSummary(req.user.id, contentType, contentId);
 
@@ -170,7 +184,8 @@ export const getVoteCounts = async (req, res, next) => {
 // @access  Private
 export const deleteVote = async (req, res, next) => {
   try {
-    const { contentType, contentId } = req.params;
+    const { contentType } = req.params;
+    const contentId = decodeContentId(req.params.contentId);
 
     // Find and delete the vote
     const vote = await Vote.findOneAndDelete({

@@ -101,7 +101,10 @@ function MemeSection() {
         {renderContent()}
       </div>
       <div className="section-footer">
-        <VoteButtons contentType="meme" contentId={meme?.id || 'meme_placeholder'} />
+        <VoteButtons
+          contentType="meme"
+          contentId={meme?.id ? encodeURIComponent(meme.id) : 'meme_placeholder'}
+        />
       </div>
     </div>
   );
