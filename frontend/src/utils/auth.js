@@ -3,6 +3,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api'
 
 const TOKEN_KEY = 'cryptopal_token';
 const USER_KEY = 'cryptopal_user';
+const AUTH_EVENT = 'cryptopal-auth-changed';
+const isBrowser = typeof window !== 'undefined';
+
+const notifyAuthChange = () => {
+  if (isBrowser) {
+    window.dispatchEvent(new Event(AUTH_EVENT));
+  }
+};
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
@@ -40,6 +48,7 @@ export const authService = {
   setAuth: (token, user) => {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+    notifyAuthChange();
   },
 
   // Get stored token
@@ -76,6 +85,7 @@ export const authService = {
             onboarded: response.onboarded,
           };
           localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+          notifyAuthChange();
         }
         return response;
       }
@@ -103,6 +113,11 @@ export const authService = {
   clearAuth: () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    notifyAuthChange();
+  },
+
+  logout: () => {
+    authService.clearAuth();
   },
 
   // Register new user
@@ -152,5 +167,13 @@ export const authService = {
       authService.clearAuth();
       throw error;
     }
+  },
+
+  subscribe: (callback) => {
+    if (!isBrowser) {
+      return () => {};
+    }
+    window.addEventListener(AUTH_EVENT, callback);
+    return () => window.removeEventListener(AUTH_EVENT, callback);
   },
 };

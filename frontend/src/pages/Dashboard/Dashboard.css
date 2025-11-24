@@ -45,11 +45,71 @@
   margin: 0;
 }
 
+.content-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.content-filter-button {
+  min-width: 120px;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--background-light);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.content-filter-button:hover:not(:disabled) {
+  background: var(--background-dark);
+  color: var(--text-primary);
+}
+
+.content-filter-button.active {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.35);
+}
+
+.content-filter-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.content-filters-error {
+  text-align: center;
+  color: var(--error-color);
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+}
+
 .dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeInUp 0.5s ease-out 0.2s both;
+}
+
+.dashboard-section-full {
+  width: 100%;
+}
+
+.dashboard-section-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  animation: fadeInUp 0.5s ease-out 0.2s both;
+  width: 100%;
+}
+
+.dashboard-section-half {
+  width: 100%;
 }
 
 @keyframes fadeInUp {
@@ -75,9 +135,19 @@
   flex-direction: column;
 }
 
+.dashboard-section-content,
+.dashboard-section .section-content {
+  min-height: 180px;
+}
+
 .dashboard-section:hover {
-  transform: translateY(-2px);
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-section.meme-only {
+  max-width: 640px;
+  margin: 0 auto;
+  height: auto;
 }
 
 .dashboard-loading {
@@ -91,8 +161,12 @@
 
 /* Responsive Design */
 @media (max-width: 968px) {
-  .dashboard-grid {
+  .dashboard-section-row {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-section.meme-only {
+    max-width: 100%;
   }
 
   .dashboard-header h1 {
@@ -116,6 +190,18 @@
 
   .dashboard-header h1 {
     font-size: 1.75rem;
+  }
+
+  .content-filters {
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .content-filter-button {
+    flex: unset;
+    width: 100%;
+    min-width: 0;
   }
 }
 

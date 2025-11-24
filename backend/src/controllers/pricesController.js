@@ -68,10 +68,10 @@ export const getPriceHistory = async (req, res, next) => {
 const coinMapping = {
   'Bitcoin': 'bitcoin',
   'Ethereum': 'ethereum',
-  'Altcoins': 'cardano,polkadot,solana,avalanche-2',
-  'DeFi': 'uniswap,aave,chainlink',
+  'Altcoins': 'cardano,polkadot,solana,avalanche-2,algorand',
+  'DeFi': 'uniswap,aave,chainlink,compound-governance-token,maker',
   'NFTs': 'ethereum', // NFTs are typically on Ethereum
-  'Stablecoins': 'tether,usd-coin,dai',
+  'Stablecoins': 'tether,usd-coin,dai,binance-usd',
   'Layer 2': 'polygon,arbitrum,optimism',
   'Meme Coins': 'dogecoin,shiba-inu',
 };
@@ -102,6 +102,16 @@ export const getPrices = async (req, res, next) => {
 
     // Remove duplicates
     coinIds = [...new Set(coinIds)];
+
+    // Ensure at least 2 coins are displayed
+    if (coinIds.length === 1) {
+      // Add Bitcoin if not already present, otherwise add Ethereum
+      if (!coinIds.includes('bitcoin')) {
+        coinIds.push('bitcoin');
+      } else if (!coinIds.includes('ethereum')) {
+        coinIds.push('ethereum');
+      }
+    }
 
     const cacheKey = `prices_${coinIds.sort().join('_')}`;
 

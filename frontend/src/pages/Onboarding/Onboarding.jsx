@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../utils/auth';
 import ProgressBar from '../../components/Onboarding/ProgressBar';
+import { CONTENT_TYPE_OPTIONS } from '../../constants/contentTypes';
 import './Onboarding.css';
 
 const CRYPTO_ASSETS = [
@@ -19,21 +20,9 @@ const INVESTOR_TYPES = [
   { id: 'hodler', label: 'HODLer', description: 'Long-term holder' },
   { id: 'day-trader', label: 'Day Trader', description: 'Active daily trading' },
   { id: 'nft-collector', label: 'NFT Collector', description: 'Digital art enthusiast' },
-  { id: 'swing-trader', label: 'Swing Trader', description: 'Medium-term positions' },
-  { id: 'defi-enthusiast', label: 'DeFi Enthusiast', description: 'Decentralized finance' },
-  { id: 'crypto-newbie', label: 'Crypto Newbie', description: 'Just getting started' },
 ];
 
-const CONTENT_TYPES = [
-  'Market News',
-  'Charts/Analysis',
-  'Social Media',
-  'Fun/Memes',
-  'Educational',
-  'Trading Signals',
-  'Project Updates',
-  'Market Trends',
-];
+const CONTENT_TYPES = CONTENT_TYPE_OPTIONS.map(option => option.id);
 
 function Onboarding() {
   const [currentStep, setCurrentStep] = useState(1);

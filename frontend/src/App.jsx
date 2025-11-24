@@ -39,6 +39,14 @@ function ProtectedDashboard({ children }) {
   return children;
 }
 
+function GuestRoute({ children }) {
+  const isAuthenticated = authService.isAuthenticated();
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+}
+
 function App() {
   const [isChecking, setIsChecking] = useState(true);
 
@@ -59,7 +67,14 @@ function App() {
           <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route
+              path="/auth"
+              element={
+                <GuestRoute>
+                  <Auth />
+                </GuestRoute>
+              }
+            />
             <Route 
               path="/onboarding" 
               element={

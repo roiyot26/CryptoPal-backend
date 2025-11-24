@@ -9,6 +9,7 @@ import newsRoutes from './routes/news.js';
 import pricesRoutes from './routes/prices.js';
 import aiRoutes from './routes/ai.js';
 import voteRoutes from './routes/votes.js';
+import memeRoutes from './routes/memes.js';
 
 // Load env vars
 dotenv.config();
@@ -37,6 +38,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/prices', pricesRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/votes', voteRoutes);
+app.use('/api/memes', memeRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

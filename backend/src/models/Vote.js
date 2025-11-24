@@ -23,6 +23,11 @@ const voteSchema = new mongoose.Schema(
       required: true,
       enum: ['up', 'down'],
     },
+    keywords: {
+      type: [String],
+      default: [],
+      index: true,
+    },
   },
   {
     timestamps: true,

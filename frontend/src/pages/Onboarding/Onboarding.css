@@ -12,20 +12,7 @@
   transition: background-color 0.3s ease;
 }
 
-.onboarding::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle,
-    rgba(99, 102, 241, 0.1) 0%,
-    transparent 70%
-  );
-  animation: pulse 8s ease-in-out infinite;
-}
+
 
 @keyframes pulse {
   0%, 100% {
@@ -134,14 +121,14 @@
 .option-chip:hover {
   border-color: var(--primary-color);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
 }
 
 .option-chip.selected {
   background: var(--gradient-primary);
   border-color: var(--primary-color);
   color: var(--text-primary);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
 }
 
 .option-card {
@@ -162,13 +149,13 @@
 .option-card:hover {
   border-color: var(--primary-color);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
 }
 
 .option-card.selected {
   background: var(--gradient-primary);
   border-color: var(--primary-color);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
 }
 
 .card-label {
@@ -221,13 +208,13 @@
   background: var(--gradient-primary);
   border: none;
   color: var(--text-primary);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
   margin-left: auto;
 }
 
 .next-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
 }
 
 .next-button:disabled {

@@ -20,11 +20,11 @@ export const getNews = async (req, res, next) => {
         const currencyMap = {
           'Bitcoin': 'BTC',
           'Ethereum': 'ETH',
-          'Altcoins': 'BTC,ETH,ADA,DOT,SOL',
-          'DeFi': 'ETH,UNI,AAVE,LINK',
+          'Altcoins': 'ADA,DOT,SOL,AVAX,ALGO',
+          'DeFi': 'UNI,AAVE,LINK,COMP,MKR',
           'NFTs': 'ETH',
-          'Stablecoins': 'USDT,USDC,DAI',
-          'Layer 2': 'ETH,MATIC,ARB,OP',
+          'Stablecoins': 'USDT,USDC,DAI,BUSD',
+          'Layer 2': 'MATIC,ARB,OP',
           'Meme Coins': 'DOGE,SHIB',
         };
 
@@ -48,13 +48,6 @@ export const getNews = async (req, res, next) => {
         };
 
         const data = await cryptopanicClient('/posts/', params);
-        
-        // Log response summary
-        logger.debug('CryptoPanic API response received', 'NEWS', {
-          hasResults: !!data.results,
-          resultsType: Array.isArray(data.results) ? 'array' : typeof data.results,
-          resultsLength: Array.isArray(data.results) ? data.results.length : 'N/A',
-        });
         
         // Format the response - CryptoPanic returns results array
         let results = [];
@@ -85,7 +78,7 @@ export const getNews = async (req, res, next) => {
         }
         
         return {
-          results: results.slice(0, 3).map((item, index) => {
+          results: results.slice(0, 10).map((item, index) => {
             // Format date
             let formattedDate = '';
             if (item.created_at) {
@@ -103,12 +96,34 @@ export const getNews = async (req, res, next) => {
               formattedDate = new Date().toLocaleDateString();
             }
 
+            // Format published date if different from created_at
+            let formattedPublishedDate = '';
+            if (item.published_at) {
+              try {
+                const publishedDate = new Date(item.published_at);
+                formattedPublishedDate = publishedDate.toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+              } catch (e) {
+                formattedPublishedDate = '';
+              }
+            }
+
             return {
               id: item.id || `news_${index}`,
               title: item.title || 'No title',
               created_at: item.created_at || new Date().toISOString(),
+              published_at: item.published_at || null,
               formatted_date: formattedDate,
+              formatted_published_date: formattedPublishedDate,
               description: item.description || item.text || item.subtitle || item.metadata?.description || null,
+              kind: item.kind || 'news',
+              slug: item.slug || null,
+              url: item.url || null,
             };
           }),
           count: results.length,
@@ -119,41 +134,13 @@ export const getNews = async (req, res, next) => {
       }
     };
 
-    // Check if we should bypass cache (for debugging) via query parameter
-    const bypassCache = req.query.bypassCache === 'true';
-    
-    if (bypassCache) {
-      // Bypass cache for debugging - fetch fresh data directly
-      logger.info('Bypassing cache - fetching fresh data from API', 'NEWS');
-      try {
-        const newsData = await fetchNews();
-        res.status(200).json({
-          success: true,
-          data: newsData,
-        });
-      } catch (fetchError) {
-        logger.error('Error fetching news (bypassing cache)', 'NEWS', fetchError.message);
-        // If direct fetch fails, try with cache as fallback
-        try {
-          const newsData = await Cache.getOrCreate(cacheKey, fetchNews, 24);
-          res.status(200).json({
-            success: true,
-            data: newsData,
-          });
-        } catch (cacheError) {
-          logger.error('Error with cache fallback', 'NEWS', cacheError.message);
-          // If both fail, throw the original error to be handled by error middleware
-          throw fetchError;
-        }
-      }
-    } else {
-      // Normal operation with caching
-      const newsData = await Cache.getOrCreate(cacheKey, fetchNews, 24);
-      res.status(200).json({
-        success: true,
-        data: newsData,
-      });
-    }
+    // Use cache for news to preserve API usage
+    const newsData = await Cache.getOrCreate(cacheKey, fetchNews, 1); // Cache for 1 hour
+
+    res.status(200).json({
+      success: true,
+      data: newsData,
+    });
   } catch (error) {
     next(error);
   }

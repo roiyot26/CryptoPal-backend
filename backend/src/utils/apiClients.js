@@ -134,3 +134,28 @@ export const openRouterClient = async (messages, model = null) => {
   throw lastError || new Error('All OpenRouter models failed');
 };
 
+export const memeClient = async (endpoint, params = {}) => {
+  const apiKey = process.env.MEME_API_KEY || '81882d3d936441cfa8c57cce32c4f76b';
+  if (!apiKey) {
+    throw new Error('Meme API key not configured');
+  }
+
+  const baseUrl = 'https://api.apileague.com';
+  const queryParams = new URLSearchParams(params);
+  const queryString = queryParams.toString();
+  const url = `${baseUrl}${endpoint}${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'X-API-Key': apiKey,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Meme API error: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+
+  return await response.json();
+};
+

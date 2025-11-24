@@ -45,6 +45,7 @@ The server will run on `http://localhost:5000` by default.
 - `JWT_SECRET=your-production-secret-key`
 - `JWT_EXPIRES_IN=7d`
 - `FRONTEND_URL=your-production-frontend-url`
+- `MEME_API_KEY=your-apileague-meme-api-key`
 
 ## API Endpoints
 

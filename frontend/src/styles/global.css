@@ -1,9 +1,9 @@
 /* Global CSS Variables - Dark Theme (Default) */
 :root,
 [data-theme="dark"] {
-  --primary-color: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: #818cf8;
+  --primary-color: #22c55e;
+  --primary-dark: #16a34a;
+  --primary-light: #4ade80;
   --secondary-color: #f59e0b;
   --background-dark: #0f172a;
   --background-darker: #020617;
@@ -14,15 +14,15 @@
   --border-color: #334155;
   --success-color: #10b981;
   --error-color: #ef4444;
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-primary: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
   --gradient-secondary: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
 }
 
 /* Light Theme Variables */
 [data-theme="light"] {
-  --primary-color: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: #818cf8;
+  --primary-color: #22c55e;
+  --primary-dark: #16a34a;
+  --primary-light: #4ade80;
   --secondary-color: #f59e0b;
   --background-dark: #f8fafc;
   --background-darker: #ffffff;
@@ -33,7 +33,7 @@
   --border-color: #e2e8f0;
   --success-color: #10b981;
   --error-color: #ef4444;
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-primary: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
   --gradient-secondary: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
 }
 

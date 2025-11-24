@@ -11,9 +11,10 @@ export const getAIInsight = async (req, res, next) => {
     const investorType = userPreferences?.investorType || 'general';
     const cryptoAssets = userPreferences?.cryptoAssets || [];
 
-    // Create cache key for daily insight
+    // Create cache key for daily insight - include user preferences for personalization
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const cacheKey = `ai_insight_${today}`;
+    const assetsKey = cryptoAssets.length > 0 ? cryptoAssets.sort().join('_') : 'default';
+    const cacheKey = `ai_insight_${today}_${assetsKey}`;
 
     const fetchInsight = async () => {
       try {

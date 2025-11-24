@@ -41,13 +41,11 @@
 
 .period-button:hover {
   background: var(--background-dark);
-  border-color: var(--primary-color);
   color: var(--text-primary);
 }
 
 .period-button.active {
   background: var(--gradient-primary);
-  border-color: var(--primary-color);
   color: var(--text-primary);
   font-weight: 600;
 }
@@ -84,8 +82,7 @@
 }
 
 .price-chart-error .retry-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
 }
 
 @media (max-width: 768px) {

@@ -11,6 +11,10 @@ function PricesSection({ userPreferences }) {
   const [prices, setPrices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [percentageChanges, setPercentageChanges] = useState({}); // Track percentage changes per coin
+  const [currentPage, setCurrentPage] = useState(0);
+  
+  const ITEMS_PER_PAGE = 2;
 
   useEffect(() => {
     fetchPrices();
@@ -80,6 +84,20 @@ function PricesSection({ userPreferences }) {
     );
   };
 
+  // Calculate pagination
+  const totalPages = Math.ceil(prices.length / ITEMS_PER_PAGE);
+  const startIndex = currentPage * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPrices = prices.slice(startIndex, endIndex);
+
+  const handlePrevious = () => {
+    setCurrentPage(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage(prev => Math.min(totalPages - 1, prev + 1));
+  };
+
   return (
     <div className="dashboard-section-content">
       <h3 className="section-title">Coin Prices</h3>
@@ -87,26 +105,60 @@ function PricesSection({ userPreferences }) {
         {prices.length === 0 ? (
           <div className="empty-state">No price data available.</div>
         ) : (
-          <div className="prices-list">
-            {prices.map((coin, index) => (
-              <div key={coin.id || index} className="price-item">
-                <div className="price-header">
-                  <div>
-                    <h4 className="coin-name">{coin.name}</h4>
-                    <p className="coin-symbol">{coin.symbol}</p>
+          <>
+            <div className="prices-list">
+              {currentPrices.map((coin, index) => {
+                const originalIndex = startIndex + index;
+                return (
+                  <div key={coin.id || originalIndex} className="price-item">
+                    <div className="price-header">
+                      <div>
+                        <h4 className="coin-name">{coin.name}</h4>
+                      </div>
+                      <div className="price-info">
+                        <div className="price-value">{formatPrice(coin.price)}</div>
+                        {formatChange(percentageChanges[coin.id] !== undefined ? percentageChanges[coin.id] : coin.change24h)}
+                      </div>
+                    </div>
+                    <PriceChart 
+                      coinId={coin.id} 
+                      coinName={coin.name}
+                      onPercentageChange={(percentage) => {
+                        setPercentageChanges(prev => ({
+                          ...prev,
+                          [coin.id]: percentage
+                        }));
+                      }}
+                    />
+                    <div className="price-footer">
+                      <VoteButtons contentType="price" contentId={coin.id || `price_${originalIndex}`} />
+                    </div>
                   </div>
-                  <div className="price-info">
-                    <div className="price-value">{formatPrice(coin.price)}</div>
-                    {formatChange(coin.change24h)}
-                  </div>
-                </div>
-                <PriceChart coinId={coin.id} coinName={coin.name} />
-                <div className="price-footer">
-                  <VoteButtons contentType="price" contentId={coin.id || `price_${index}`} />
-                </div>
+                );
+              })}
+            </div>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <button 
+                  className="pagination-button"
+                  onClick={handlePrevious}
+                  disabled={currentPage === 0}
+                >
+                  Previous
+                </button>
+                <span className="pagination-info">
+                  Page {currentPage + 1} of {totalPages}
+                </span>
+                <button 
+                  className="pagination-button"
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages - 1}
+                >
+                  Next
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

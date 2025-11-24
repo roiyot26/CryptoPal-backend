@@ -6,17 +6,18 @@ import './PriceChart.css';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 const TIME_PERIODS = [
-  { label: 'Daily', days: '1' },
-  { label: 'Weekly', days: '7' },
-  { label: 'Monthly', days: '30' },
-  { label: 'Yearly', days: '365' },
+  { label: 'D', fullLabel: 'Daily', days: '1' },
+  { label: '1W', fullLabel: 'Weekly', days: '7' },
+  { label: '1M', fullLabel: 'Monthly', days: '30' },
+  { label: '1Y', fullLabel: 'Yearly', days: '365' },
 ];
 
-function PriceChart({ coinId, coinName }) {
+function PriceChart({ coinId, coinName, onPercentageChange }) {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('7');
   const [error, setError] = useState(null);
+  const [lineColor, setLineColor] = useState('var(--primary-color)');
 
   useEffect(() => {
     if (coinId) {
@@ -41,6 +42,21 @@ function PriceChart({ coinId, coinName }) {
 
       const data = await response.json();
       const prices = data.data?.prices || [];
+
+      // Calculate percentage change for the period
+      if (prices.length > 0 && onPercentageChange) {
+        const oldestPrice = prices[0].price;
+        const newestPrice = prices[prices.length - 1].price;
+        const percentageChange = ((newestPrice - oldestPrice) / oldestPrice) * 100;
+        onPercentageChange(percentageChange);
+        
+        // Set line color based on percentage
+        if (percentageChange >= 0) {
+          setLineColor('var(--success-color)'); // Green for positive
+        } else {
+          setLineColor('var(--error-color)'); // Red for negative
+        }
+      }
 
       // Format data for chart - sample data points for better performance
       const formattedData = prices
@@ -122,6 +138,7 @@ function PriceChart({ coinId, coinName }) {
               key={period.days}
               className={`period-button ${selectedPeriod === period.days ? 'active' : ''}`}
               onClick={() => setSelectedPeriod(period.days)}
+              aria-label={period.fullLabel}
             >
               {period.label}
             </button>
@@ -156,7 +173,7 @@ function PriceChart({ coinId, coinName }) {
             <Line
               type="monotone"
               dataKey="price"
-              stroke="var(--primary-color)"
+              stroke={lineColor}
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4 }}
