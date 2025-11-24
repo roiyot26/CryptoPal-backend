@@ -9,7 +9,7 @@ Node.js/Express backend with MongoDB and JWT authentication.
 npm install
 ```
 
-2. Create a `.env` file in the backend directory (copy from `.env.example`):
+2. Create a `.env` file in the `api` directory (copy from `.env.example`):
 ```bash
 cp .env.example .env
 ```
@@ -44,8 +44,8 @@ Provide real credentials for production (Mongo Atlas URI, API tokens, etc.).
 
 ## Deploying to Vercel
 
-1. The repo root contains a `package.json` with a `vercel-build` script that installs/builds the frontend before installing backend dependencies. Vercel runs this automatically.
-2. `vercel.json` rewrites every request to `api/index.js`, which exports the Express app from `backend/src/app.js`, enabling both `/api/*` routes and static asset serving via the same handler.
+1. The repo root contains a `package.json` with a `vercel-build` script that installs/builds the frontend, copies it into `api/public/`, and installs API dependencies. Vercel runs this automatically.
+2. `vercel.json` rewrites every request to `api/index.js`, which exports the Express app from `api/src/app.js`, enabling both `/api/*` routes and static asset serving via the same handler.
 3. Configure all environment variables listed above inside the Vercel dashboard (`FRONTEND_URL` should equal your deployed domain).
 4. Connect the GitHub repo to Vercel and trigger a deploy. Verify everything via `https://<your-app>/api/health` and the root URL.
 
@@ -63,7 +63,7 @@ Provide real credentials for production (Mongo Atlas URI, API tokens, etc.).
 ## Project Structure
 
 ```
-backend/
+api/
 ├── src/
 │   ├── config/
 │   │   └── database.js       # MongoDB connection
@@ -81,7 +81,8 @@ backend/
 │   ├── utils/
 │   │   ├── jwt.js            # JWT utilities
 │   │   └── password.js       # Password hashing utilities
-│   └── server.js             # Express server setup
+│   ├── app.js                # Express app bootstrap (used by Vercel)
+│   └── server.js             # Local dev server entry
 ├── .env.example              # Environment variables template
 └── package.json
 ```
