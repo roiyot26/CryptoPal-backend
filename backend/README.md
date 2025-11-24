@@ -14,10 +14,7 @@ npm install
 cp .env.example .env
 ```
 
-3. Update `.env` with your configuration:
-- `MONGODB_URI` - MongoDB connection string
-- `JWT_SECRET` - Secret key for JWT tokens
-- `FRONTEND_URL` - Frontend URL for CORS
+3. Update `.env` with your configuration (see **Environment Variables** below for the full list).
 
 4. Make sure MongoDB is running locally or update `MONGODB_URI` to your MongoDB instance.
 
@@ -30,22 +27,27 @@ The server will run on `http://localhost:5000` by default.
 
 ## Environment Variables
 
-### Development
-- `NODE_ENV=development`
-- `PORT=5000`
-- `MONGODB_URI=mongodb://localhost:27017/cryptopal`
-- `JWT_SECRET=dev-secret-key-change-in-production`
-- `JWT_EXPIRES_IN=7d`
-- `FRONTEND_URL=http://localhost:5173`
+Both local and hosted environments use the following variables (see `.env.example` for placeholders):
 
-### Production
-- `NODE_ENV=production`
-- `PORT=5000` (or your production port)
-- `MONGODB_URI=your-production-mongodb-uri`
-- `JWT_SECRET=your-production-secret-key`
-- `JWT_EXPIRES_IN=7d`
-- `FRONTEND_URL=your-production-frontend-url`
-- `MEME_API_KEY=your-apileague-meme-api-key`
+- `NODE_ENV`
+- `PORT`
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+- `FRONTEND_URL`
+- `COINGECKO_API_KEY`
+- `CRYPTOPANIC_API_KEY`
+- `OPENROUTER_API_KEY`
+- `MEME_API_KEY`
+
+Provide real credentials for production (Mongo Atlas URI, API tokens, etc.).
+
+## Deploying to Vercel
+
+1. The repo root contains a `package.json` with a `vercel-build` script that installs/builds the frontend before installing backend dependencies. Vercel runs this automatically.
+2. `vercel.json` rewrites every request to `api/index.js`, which exports the Express app from `backend/src/app.js`, enabling both `/api/*` routes and static asset serving via the same handler.
+3. Configure all environment variables listed above inside the Vercel dashboard (`FRONTEND_URL` should equal your deployed domain).
+4. Connect the GitHub repo to Vercel and trigger a deploy. Verify everything via `https://<your-app>/api/health` and the root URL.
 
 ## API Endpoints
 
