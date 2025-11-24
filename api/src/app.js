@@ -24,7 +24,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      // Allow Vercel preview and production URLs
+      /^https:\/\/.*\.vercel\.app$/,
+    ];
+    
+    if (allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') return origin === allowed;
+      if (allowed instanceof RegExp) return allowed.test(origin);
+      return false;
+    })) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 };
 
