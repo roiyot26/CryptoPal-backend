@@ -1,6 +1,7 @@
 import Cache from '../models/Cache.js';
 import { cryptopanicClient } from '../utils/apiClients.js';
 import logger from '../utils/logger.js';
+import memoryCache from '../utils/memoryCache.js';
 
 // @desc    Get crypto news
 // @route   GET /api/news
@@ -12,6 +13,15 @@ export const getNews = async (req, res, next) => {
 
     // Create cache key based on user preferences
     const cacheKey = `news_${cryptoAssets.sort().join('_') || 'all'}`;
+    const MEMORY_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+    const cachedResponse = memoryCache.get(cacheKey);
+    if (cachedResponse) {
+      return res.status(200).json({
+        success: true,
+        data: cachedResponse,
+      });
+    }
 
     const fetchNews = async () => {
       try {
@@ -136,6 +146,7 @@ export const getNews = async (req, res, next) => {
 
     // Use cache for news to preserve API usage
     const newsData = await Cache.getOrCreate(cacheKey, fetchNews, 1); // Cache for 1 hour
+    memoryCache.set(cacheKey, newsData, MEMORY_TTL_MS);
 
     res.status(200).json({
       success: true,

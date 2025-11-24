@@ -1,33 +1,51 @@
 import Vote from '../models/Vote.js';
 
-const buildVoteSummary = async (userId, contentType, contentId) => {
-  const votes = await Vote.find({ contentType, contentId }).populate('user', 'name');
+const MAX_VOTER_NAMES = 5;
 
-  const summary = {
-    counts: { upvotes: 0, downvotes: 0 },
-    userVote: null,
-    voters: {
-      up: [],
-      down: [],
-    },
-  };
+const createEmptySummary = () => ({
+  counts: { upvotes: 0, downvotes: 0 },
+  userVote: null,
+  voters: {
+    up: [],
+    down: [],
+  },
+});
 
-  votes.forEach((vote) => {
-    const voterName = vote.user?.name || 'Anonymous';
-    if (vote.voteType === 'up') {
-      summary.counts.upvotes += 1;
+const getUserDisplayName = (user) => user?.name?.trim() || 'Anonymous';
+
+const applyVoteToSummary = (summary, vote, userId) => {
+  const voterName = vote.userName || 'Anonymous';
+  if (vote.voteType === 'up') {
+    summary.counts.upvotes += 1;
+    if (summary.voters.up.length < MAX_VOTER_NAMES) {
       summary.voters.up.push(voterName);
-    } else if (vote.voteType === 'down') {
-      summary.counts.downvotes += 1;
+    }
+  } else if (vote.voteType === 'down') {
+    summary.counts.downvotes += 1;
+    if (summary.voters.down.length < MAX_VOTER_NAMES) {
       summary.voters.down.push(voterName);
     }
+  }
 
-    if (!summary.userVote && userId && vote.user?.id?.toString() === userId.toString()) {
-      summary.userVote = vote.voteType;
-    }
-  });
+  if (
+    !summary.userVote &&
+    userId &&
+    vote.user &&
+    vote.user.toString() === userId.toString()
+  ) {
+    summary.userVote = vote.voteType;
+  }
 
   return summary;
+};
+
+const buildVoteSummary = async (userId, contentType, contentId) => {
+  const votes = await Vote.find({ contentType, contentId }).select('voteType user userName');
+
+  return votes.reduce(
+    (summary, vote) => applyVoteToSummary(summary, vote, userId),
+    createEmptySummary()
+  );
 };
 
 // @desc    Create or update vote
@@ -91,15 +109,15 @@ export const createVote = async (req, res, next) => {
     });
 
     if (vote) {
-      // If same vote type, this shouldn't happen (frontend handles toggle)
-      // But if it does, just update
       vote.voteType = voteType;
       vote.keywords = keywords; // Update keywords as well
+      vote.userName = getUserDisplayName(req.user);
       await vote.save();
     } else {
       // Create new vote
       vote = await Vote.create({
         user: req.user.id,
+        userName: getUserDisplayName(req.user),
         contentType,
         contentId,
         voteType,

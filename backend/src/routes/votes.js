@@ -1,5 +1,10 @@
 import express from 'express';
-import { createVote, getVoteCounts, getUserVotes, deleteVote } from '../controllers/voteController.js';
+import {
+  createVote,
+  getVoteCounts,
+  getUserVotes,
+  deleteVote,
+} from '../controllers/voteController.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();

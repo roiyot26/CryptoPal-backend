@@ -1,6 +1,7 @@
 import Cache from '../models/Cache.js';
 import { coingeckoClient } from '../utils/apiClients.js';
 import logger from '../utils/logger.js';
+import memoryCache from '../utils/memoryCache.js';
 
 // @desc    Get historical price data for a coin
 // @route   GET /api/prices/:coinId/history
@@ -22,6 +23,15 @@ export const getPriceHistory = async (req, res, next) => {
     const daysParam = validDays.includes(days) ? days : '7';
 
     const cacheKey = `price_history_${coinId}_${daysParam}`;
+    const MEMORY_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+    const cachedHistory = memoryCache.get(cacheKey);
+    if (cachedHistory) {
+      return res.status(200).json({
+        success: true,
+        data: cachedHistory,
+      });
+    }
 
     const fetchHistory = async () => {
       try {
@@ -54,6 +64,7 @@ export const getPriceHistory = async (req, res, next) => {
     };
 
     const historyData = await Cache.getOrCreate(cacheKey, fetchHistory, 1); // Cache for 1 hour
+    memoryCache.set(cacheKey, historyData, MEMORY_TTL_MS);
 
     res.status(200).json({
       success: true,
@@ -114,6 +125,15 @@ export const getPrices = async (req, res, next) => {
     }
 
     const cacheKey = `prices_${coinIds.sort().join('_')}`;
+    const MEMORY_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+    const cachedPrices = memoryCache.get(cacheKey);
+    if (cachedPrices) {
+      return res.status(200).json({
+        success: true,
+        data: cachedPrices,
+      });
+    }
 
     const fetchPrices = async () => {
       try {
@@ -145,6 +165,7 @@ export const getPrices = async (req, res, next) => {
     };
 
     const pricesData = await Cache.getOrCreate(cacheKey, fetchPrices, 1); // Cache for 1 hour
+    memoryCache.set(cacheKey, pricesData, MEMORY_TTL_MS);
 
     res.status(200).json({
       success: true,

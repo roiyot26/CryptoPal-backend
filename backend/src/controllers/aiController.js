@@ -1,6 +1,7 @@
 import Cache from '../models/Cache.js';
 import { openRouterClient } from '../utils/apiClients.js';
 import logger from '../utils/logger.js';
+import memoryCache from '../utils/memoryCache.js';
 
 // @desc    Get AI insight
 // @route   GET /api/ai/insight
@@ -15,6 +16,15 @@ export const getAIInsight = async (req, res, next) => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const assetsKey = cryptoAssets.length > 0 ? cryptoAssets.sort().join('_') : 'default';
     const cacheKey = `ai_insight_${today}_${assetsKey}`;
+    const MEMORY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    const cachedInsight = memoryCache.get(cacheKey);
+    if (cachedInsight) {
+      return res.status(200).json({
+        success: true,
+        data: cachedInsight,
+      });
+    }
 
     const fetchInsight = async () => {
       try {
@@ -75,6 +85,7 @@ export const getAIInsight = async (req, res, next) => {
     };
 
     const insightData = await Cache.getOrCreate(cacheKey, fetchInsight, 24); // Cache for 24 hours (daily)
+    memoryCache.set(cacheKey, insightData, MEMORY_TTL_MS);
 
     res.status(200).json({
       success: true,

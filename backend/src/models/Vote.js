@@ -28,6 +28,11 @@ const voteSchema = new mongoose.Schema(
       default: [],
       index: true,
     },
+    userName: {
+      type: String,
+      default: 'Anonymous',
+      trim: true,
+    },
   },
   {
     timestamps: true,

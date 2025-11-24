@@ -1,6 +1,7 @@
 import Cache from '../models/Cache.js';
 import { memeClient } from '../utils/apiClients.js';
 import logger from '../utils/logger.js';
+import memoryCache from '../utils/memoryCache.js';
 
 const FALLBACK_KEYWORD = 'crypto';
 const NO_MEMES_ERROR_CODE = 'NO_MEMES_FOR_KEYWORD';
@@ -55,6 +56,15 @@ export const getMemes = async (req, res, next) => {
     const requestedKeyword = getKeywordFromPreferences(userPreferences);
     const normalizedKeyword = normalizeKeyword(requestedKeyword);
     const cacheKey = getCacheKey(normalizedKeyword);
+    const MEMORY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    const cachedMemes = memoryCache.get(cacheKey);
+    if (cachedMemes) {
+      return res.status(200).json({
+        success: true,
+        data: cachedMemes,
+      });
+    }
 
     const fetchMemes = async (displayKeyword, keywordForApi) => {
       logger.debug(
@@ -126,6 +136,8 @@ export const getMemes = async (req, res, next) => {
         throw error;
       }
     }
+
+    memoryCache.set(cacheKey, memesData, MEMORY_TTL_MS);
 
     res.status(200).json({
       success: true,
