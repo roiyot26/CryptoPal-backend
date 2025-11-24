@@ -1,6 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import connectDB from './config/database.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.js';
@@ -18,6 +20,8 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Body parser
 app.use(express.json());
@@ -39,6 +43,12 @@ app.use('/api/prices', pricesRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/votes', voteRoutes);
 app.use('/api/memes', memeRoutes);
+
+const staticDir = path.join(__dirname, '..', 'public');
+app.use(express.static(staticDir));
+app.get(/^\/(?!api\/).*/, (req, res) => {
+  res.sendFile(path.join(staticDir, 'index.html'));
+});
 
 // Health check
 app.get('/api/health', (req, res) => {
