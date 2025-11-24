@@ -16,30 +16,48 @@ function PriceChart({ coinId, coinName, onPercentageChange }) {
   const [selectedPeriod, setSelectedPeriod] = useState('7');
   const [error, setError] = useState(null);
   const [lineColor, setLineColor] = useState('var(--primary-color)');
+  const [fallbackCoin, setFallbackCoin] = useState(null); // Track if we're using a fallback coin
 
   useEffect(() => {
     if (coinId) {
+      setFallbackCoin(null); // Reset fallback when coinId changes
       fetchChartData(selectedPeriod);
     }
   }, [coinId, selectedPeriod]);
 
-  const fetchChartData = async (days) => {
+  const fetchChartData = async (days, fallbackCoinId = null, fallbackCoinName = null) => {
     try {
       setLoading(true);
       setError(null);
       const token = authService.getToken();
-      const response = await fetch(`${API_BASE_URL}/prices/${coinId}/history?days=${days}`, {
+      const targetCoinId = fallbackCoinId || coinId;
+      const response = await fetch(`${API_BASE_URL}/prices/${targetCoinId}/history?days=${days}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
+        // If this is the original coin and it failed, try fallback
+        if (!fallbackCoinId && coinId !== 'bitcoin' && coinId !== 'ethereum') {
+          // Try Bitcoin first
+          return fetchChartData(days, 'bitcoin', 'Bitcoin');
+        }
+        // If we tried Bitcoin and it failed, try Ethereum
+        if (fallbackCoinId === 'bitcoin' && coinId !== 'ethereum') {
+          return fetchChartData(days, 'ethereum', 'Ethereum');
+        }
+        // All fallbacks exhausted, throw error
         throw new Error('Failed to fetch price history');
       }
 
       const data = await response.json();
       const prices = data.data?.prices || [];
+      
+      // If we're using a fallback, update the fallback state
+      if (fallbackCoinId) {
+        setFallbackCoin({ id: fallbackCoinId, name: fallbackCoinName });
+      }
 
       // Calculate percentage change for the period
       if (prices.length > 0 && onPercentageChange) {
@@ -91,7 +109,23 @@ function PriceChart({ coinId, coinName, onPercentageChange }) {
 
       setChartData(formattedData);
     } catch (err) {
-      setError(err.message);
+      // Only set error if we've exhausted all fallback options
+      // (i.e., we tried Ethereum, or we tried Bitcoin and the original coin was Ethereum)
+      if (fallbackCoinId === 'ethereum' || (fallbackCoinId === 'bitcoin' && coinId === 'ethereum')) {
+        setError(err.message);
+      } else {
+        // Try fallback coins - this handles network errors or other exceptions
+        if (!fallbackCoinId && coinId !== 'bitcoin' && coinId !== 'ethereum') {
+          // Try Bitcoin first
+          return fetchChartData(days, 'bitcoin', 'Bitcoin');
+        }
+        // If we tried Bitcoin and it failed, try Ethereum
+        if (fallbackCoinId === 'bitcoin' && coinId !== 'ethereum') {
+          return fetchChartData(days, 'ethereum', 'Ethereum');
+        }
+        // All fallbacks exhausted
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -129,7 +163,9 @@ function PriceChart({ coinId, coinName, onPercentageChange }) {
   return (
     <div className="price-chart-container">
       <div className="chart-header">
-        <h4 className="chart-title">{coinName} Price History</h4>
+        <h4 className="chart-title">
+          {fallbackCoin ? `${fallbackCoin.name} Price History` : `${coinName} Price History`}
+        </h4>
         <div className="period-selector">
           {TIME_PERIODS.map((period) => (
             <button

@@ -58,12 +58,23 @@ export const getPriceHistory = async (req, res, next) => {
           totalVolumes: data.total_volumes || [],
         };
       } catch (error) {
-        logger.error('CoinGecko API error', 'PRICE_HISTORY', error.message);
-        throw error;
+        logger.error(`CoinGecko API error for ${coinId}`, 'PRICE_HISTORY', error.message);
+        // Return null to indicate failure, don't throw
+        return null;
       }
     };
 
     const historyData = await Cache.getOrCreate(cacheKey, fetchHistory, 1); // Cache for 1 hour
+    
+    // If history data is null (failed to fetch), return 404
+    if (!historyData) {
+      return res.status(404).json({
+        success: false,
+        message: `Historical price data not available for ${coinId}`,
+        coinId,
+      });
+    }
+    
     memoryCache.set(cacheKey, historyData, MEMORY_TTL_MS);
 
     res.status(200).json({
@@ -71,7 +82,11 @@ export const getPriceHistory = async (req, res, next) => {
       data: historyData,
     });
   } catch (error) {
-    next(error);
+    logger.error('Unexpected error in getPriceHistory', 'PRICE_HISTORY', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch price history',
+    });
   }
 };
 
