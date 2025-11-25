@@ -17,12 +17,12 @@ CryptoPal is a full-stack web app that learns each investor’s style through on
 | Deployment | Vercel (single serverless function that serves both API + static frontend) |
 
 Key behaviors:
-- Light/dark mode toggle with CSS variables.
 - Auth + onboarding flow stores preferences (assets, investor type, content types).
 - Dashboard sections render only the content types selected by the user and can be toggled on the fly.
 - Votes are persisted with `contentType`, `contentId`, and derived keywords for future model training.
 - Multi-layer caching (Mongo + in-memory + client-side storage) keeps API usage low.
 - Controllers (Express) and React components talk to dedicated domain services, keeping transport logic thin and re-usable.
+- Light/dark mode toggle with CSS variables.
 
 ---
 
