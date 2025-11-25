@@ -1,94 +1,173 @@
-# CryptoPal - Personalized Crypto Investor Dashboard
+# CryptoPal – Personalized Crypto Investor Dashboard
 
-A web application that serves as a personalized crypto investor dashboard. The app gets to know users through an onboarding quiz and shows daily AI-curated content tailored to their interests.
+CryptoPal is a full-stack web app that learns each investor’s style through onboarding, then delivers a personalized daily dashboard with market news, coin prices, AI insights, and crypto memes. All content is preference-aware and supports thumbs up/down feedback for future tuning.
 
-## Tech Stack
+> **Live Deployment:** https://cryptopal-blond.vercel.app/
 
-- **Frontend**: React.js with Vite
-- **Backend**: Node.js with Express (to be implemented)
-- **Database**: MongoDB (to be implemented)
-- **Deployment**: Vercel (planned)
+---
+
+## Architecture & Tech Stack
+
+| Layer | Details |
+| --- | --- |
+| Frontend | React + Vite, React Router, Context API (theme + auth), Recharts, CSS modules |
+| Backend | Node.js + Express, JWT auth, bcrypt, custom caching layer (Mongo cache + in-memory) |
+| Database | MongoDB Atlas (users, preferences, votes, cache metadata) |
+| External APIs | CryptoPanic (news), CoinGecko (prices + charts), OpenRouter (AI insight), APILeague (memes) |
+| Deployment | Vercel (single serverless function that serves both API + static frontend) |
+
+Key behaviors:
+- Light/dark mode toggle with CSS variables.
+- Auth + onboarding flow stores preferences (assets, investor type, content types).
+- Dashboard sections render only the content types selected by the user and can be toggled on the fly.
+- Votes are persisted with `contentType`, `contentId`, and derived keywords for future model training.
+- Multi-layer caching (Mongo + in-memory + client-side storage) keeps API usage low.
+
+---
 
 ## Project Structure
 
 ```
 MoveoHomeTask/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── Header/
-│   │   │       ├── Header.jsx
-│   │   │       └── Header.css
-│   │   ├── pages/
-│   │   │   ├── Home/
-│   │   │   │   ├── Home.jsx
-│   │   │   │   └── Home.css
-│   │   │   └── Auth/
-│   │   │       ├── Auth.jsx
-│   │   │       └── Auth.css
-│   │   ├── styles/
-│   │   │   └── global.css
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── package.json
-│   └── vite.config.js
-└── README.md
+├── api/                  # Express backend served as Vercel function
+│   ├── public/           # Copied frontend `dist` output (served statically)
+│   └── src/
+│       ├── config/       # Mongo connection, cache config
+│       ├── controllers/  # Auth, onboarding, news, prices, AI, memes, votes
+│       ├── middleware/   # Auth guard, error handler
+│       ├── models/       # User, Vote, Cache schemas
+│       └── utils/        # API clients, logger, memory cache
+├── frontend/             # Vite SPA
+│   ├── src/components/   # Header, dashboard sections, onboarding, etc.
+│   ├── src/context/      # Theme + auth providers
+│   ├── src/pages/        # Home, Auth, Onboarding, Dashboard
+│   └── src/utils/        # Auth helpers, storage cache
+├── package.json          # Monorepo scripts (dev + Vercel build)
+└── vercel.json           # Routes `api/index.js` as the only serverless entry
 ```
 
-## Getting Started
+---
 
-### Prerequisites
+## Getting Started (Local Development)
 
-- Node.js (v20.17.0 or higher recommended)
-- npm or yarn
+> Prerequisites: Node.js ≥ 20.17 (Vite warns below 20.19 but builds succeed), npm 9+.
 
-### Installation
-
-1. Navigate to the frontend directory:
+Install dependencies for both workspaces once:
 ```bash
-cd frontend
+npm --prefix frontend install
+npm --prefix api install
 ```
 
-2. Install dependencies:
+### Run the backend
 ```bash
-npm install
+npm run dev:api
 ```
+Backend defaults to `http://localhost:5001` (set in `.env`).
 
-3. Start the development server:
+### Run the frontend
 ```bash
-npm run dev
+npm run dev:frontend
+```
+Frontend runs at `http://localhost:5173` and proxies API calls to `/api/*`.
+
+---
+
+## Environment Variables
+
+Create `api/.env` (never commit real secrets):
+
+```
+PORT=5001
+MONGODB_URI=...
+JWT_SECRET=...
+CRYPTOPANIC_API_KEY=...
+COINGECKO_API_KEY=...
+OPENROUTER_API_KEY=...
+MEME_API_KEY=...
+FRONTEND_URL=http://localhost:5173
 ```
 
-The app will be available at `http://localhost:5173` (or the port shown in the terminal).
+On Vercel, add the same env vars in the project settings (Production + Preview). The backend treats `FRONTEND_URL` plus all `*.vercel.app` origins as valid for CORS.
 
-## Features
+---
 
-### Current Implementation
+## Build & Deployment Workflow
 
-- ✅ Home page with hero section and "Get Started" CTA button
-- ✅ Shared Header component with "CryptoPal" branding
-- ✅ Navigation to login/signup page
-- ✅ Responsive design for mobile and desktop
-- ✅ Modern UI with crypto-themed color scheme
+The root `package.json` exposes a helper script that Vercel also uses:
 
-### Planned Features
+```json
+"vercel-build": "npm --prefix frontend install && npm --prefix frontend run build && rm -rf api/public && cp -R frontend/dist api/public && npm --prefix api install"
+```
 
-- Onboarding quiz
-- User authentication (login/signup)
-- AI-curated content dashboard
-- Feedback system (thumbs up/down)
-- Dynamic meme display
-- User profile management
+Manual build steps:
+1. `npm --prefix frontend run build`
+2. `rm -rf api/public && cp -R frontend/dist api/public`
+3. `npm --prefix api run build` *(not required today; backend is ES modules)*
+4. Commit + push → Vercel deploys automatically because the repo is connected.
 
-## Development
+`vercel.json` forces all routes (except `/api/*`) through `api/index.js`, so the Express app must serve `api/public/index.html` for SPA navigation. If the static bundle is missing, Vercel returns `text/html` for the requested JS path and browsers show the “Expected a JavaScript module but got text/html” error.
 
-### Available Scripts
+**Tip:** If you ever see that MIME error on production, rebuild + copy `frontend/dist` into `api/public`, commit, push, and re-deploy. Locally you can simulate the hosted build with:
+```bash
+npm run vercel-build
+npm --prefix api run dev
+```
+Then open http://localhost:5001 to confirm the bundled app serves correctly.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+---
+
+## Feature Highlights
+
+- **Home page:** marketing hero with CTA, global header, responsive layout, bright green palette.
+- **Auth + JWT:** email + password (with confirmation) plus full-name capture, login/signup toggle on one page, tokens stored securely, route guards for onboarding/dashboard.
+- **Onboarding quiz:** multi-step form capturing crypto assets, investor type (HODLer / Day Trader / NFT Collector), and content preferences (Market News / Charts / Social / Fun). Results persist to Mongo user doc.
+- **Daily dashboard:** 
+  - Coin Prices (CoinGecko) with price cards, pagination, time-range buttons (D / 1W / 1M / 1Y), dynamic chart colors, and fallbacks to BTC/ETH when data is missing.
+  - Market News (CryptoPanic) with richer cards, descriptions, Google “More” button, pagination, and logging to debug sources.
+  - AI Insight (OpenRouter) uses investor type + trending assets for tailored copy.
+  - Fun Meme (APILeague) tied deterministically to user ID per day, cached to honor API limits.
+- **Voting:** thumbs up/down for every card; votes stored as `{contentType, contentId, voteType, keywords}` to drive future models. UI intentionally hides counts per latest request.
+- **Content filters:** Buttons show/toggle the content types selected during onboarding; at least one must remain active.
+- **Caching & performance:** 
+  - Mongo `Cache` collection to store expensive API responses with TTL (two fetches before fallback).
+  - In-memory `memoryCache` to avoid DB hits for hot keys.
+  - Frontend storage cache (local/session) for auth tokens and dashboard payloads with TTL.
+  - Deterministic meme selection ensures the same image for 24 hours per user.
+
+---
+
+## Troubleshooting & Verification
+
+1. **Blank dashboard / MIME errors**
+   - Cause: `api/public` missing the latest bundle.
+   - Fix: `npm --prefix frontend run build && rm -rf api/public && cp -R frontend/dist api/public`, commit, redeploy.
+   - On the client, perform a hard refresh (Cmd/Ctrl + Shift + R) to bypass cached filenames.
+
+2. **CORS errors in production**
+   - Ensure `FRONTEND_URL` is set to the deployed origin (e.g., `https://cryptopal-blond.vercel.app`) and redeploy so the CORS whitelist includes it.
+
+3. **API rate limits**
+   - Each backend controller uses `Cache.getOrCreate` + `memoryCache`. Inspect `api/src/utils/logger.js` output to confirm when cached data is served.
+   - For debugging fresh data, optional query params (e.g., `?bypassCache=true`) can be temporarily enabled.
+
+4. **OpenRouter “No endpoints found”**
+   - The controller cycles through fallback models. Confirm the provided API key has access to those models or update the list in `api/src/controllers/aiController.js`.
+
+---
+
+## Scripts Reference
+
+| Command | Description |
+| --- | --- |
+| `npm run dev:frontend` | Start Vite dev server |
+| `npm run dev:api` | Start Express server with Nodemon |
+| `npm run vercel-build` | Build frontend, copy to `api/public`, install backend deps |
+| `npm --prefix frontend run build` | Build SPA only |
+| `npm --prefix api run lint` *(if configured)* | Lint backend code |
+
+---
 
 ## License
 
-This project is part of a coding interview task.
+This project was created as part of the Moveo home assignment. Use it for evaluation or personal learning only.
 
