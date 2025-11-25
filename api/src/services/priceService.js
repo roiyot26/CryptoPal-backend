@@ -120,7 +120,7 @@ const fetchPrices = async (coinIds) => {
 
     if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
       logger.warn('CoinGecko API returned empty or invalid data', 'PRICES');
-      return null;
+      throw createHttpError(502, 'CoinGecko returned empty data');
     }
 
     const formattedPrices = Object.entries(data)
@@ -136,7 +136,7 @@ const fetchPrices = async (coinIds) => {
 
     if (formattedPrices.length === 0) {
       logger.warn('No valid price data after formatting', 'PRICES');
-      return null;
+      throw createHttpError(502, 'CoinGecko returned no usable prices');
     }
 
     return {
@@ -145,11 +145,11 @@ const fetchPrices = async (coinIds) => {
     };
   } catch (error) {
     logger.error('CoinGecko API error', 'PRICES', error.message);
-    return null;
+    throw error;
   }
 };
 
-const FALLBACK_PRICES = {
+const createFallbackResponse = () => ({
   prices: [
     {
       id: 'bitcoin',
@@ -169,7 +169,8 @@ const FALLBACK_PRICES = {
     },
   ],
   timestamp: new Date().toISOString(),
-};
+  __fallback: true,
+});
 
 export const getPricesForUser = async (userPreferences = {}) => {
   const coinIds = resolveCoinIds(userPreferences);
@@ -180,21 +181,37 @@ export const getPricesForUser = async (userPreferences = {}) => {
     return cachedPrices;
   }
 
-  let pricesData = await Cache.getOrCreate(cacheKey, () => fetchPrices(coinIds), 1);
+  let pricesData = await (async () => {
+    try {
+      return await Cache.getOrCreate(cacheKey, () => fetchPrices(coinIds), 1);
+    } catch (error) {
+      logger.warn('Primary price fetch failed', 'PRICES', error.message);
+      return null;
+    }
+  })();
 
   if (!pricesData || !pricesData.prices || pricesData.prices.length === 0) {
     logger.warn('Primary price fetch failed, trying Bitcoin/Ethereum fallback', 'PRICES');
     const fallbackCoinIds = ['bitcoin', 'ethereum'];
     const fallbackCacheKey = `prices_${fallbackCoinIds.sort().join('_')}`;
-    pricesData = await Cache.getOrCreate(fallbackCacheKey, () => fetchPrices(fallbackCoinIds), 1);
+    pricesData = await (async () => {
+      try {
+        return await Cache.getOrCreate(fallbackCacheKey, () => fetchPrices(fallbackCoinIds), 1);
+      } catch (error) {
+        logger.error('Fallback price fetch failed', 'PRICES', error.message);
+        return null;
+      }
+    })();
 
     if (!pricesData || !pricesData.prices || pricesData.prices.length === 0) {
       logger.error('Both primary and fallback price fetches failed', 'PRICES');
-      pricesData = FALLBACK_PRICES;
+      pricesData = createFallbackResponse();
     }
   }
 
-  memoryCache.set(cacheKey, pricesData, MEMORY_TTL_MS);
+  if (!pricesData.__fallback) {
+    memoryCache.set(cacheKey, pricesData, MEMORY_TTL_MS);
+  }
 
   return pricesData;
 };

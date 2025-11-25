@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import VoteButtons from './VoteButtons';
 import { newsService } from '../../services/newsService';
+import { getCachedData, setCachedData, clearCachedData } from '../../services/dataCache';
 import './SectionStyles.css';
 import './NewsSection.css';
 
@@ -13,17 +14,32 @@ function NewsSection() {
   const ITEMS_PER_PAGE = 2;
 
   useEffect(() => {
-    fetchNews();
+    fetchNews({ useCache: true });
   }, []);
 
-  const fetchNews = async () => {
+  const fetchNews = async ({ useCache = false } = {}) => {
     try {
       setLoading(true);
+      if (useCache) {
+        const cached = getCachedData('dashboard_news');
+        if (cached) {
+          setNews(cached);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+      }
+
       const data = await newsService.getNews();
-      setNews(data?.results || []);
+      const results = data?.results || data?.data?.results || [];
+      setNews(results);
+      setCachedData('dashboard_news', results);
       setError(null);
     } catch (err) {
       setError(err.message);
+      if (!useCache) {
+        clearCachedData('dashboard_news');
+      }
     } finally {
       setLoading(false);
     }
@@ -44,7 +60,7 @@ function NewsSection() {
         <h3 className="section-title">Market News</h3>
         <div className="error-state">
           <p>Error loading news</p>
-          <button onClick={fetchNews} className="retry-button">Retry</button>
+          <button onClick={() => fetchNews({ useCache: false })} className="retry-button">Retry</button>
         </div>
       </div>
     );

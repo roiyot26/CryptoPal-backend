@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import VoteButtons from './VoteButtons';
 import PriceChart from './PriceChart';
 import { priceService } from '../../services/priceService';
+import { getCachedData, setCachedData, clearCachedData } from '../../services/dataCache';
 import './SectionStyles.css';
 import './PricesSection.css';
 
@@ -15,17 +16,32 @@ function PricesSection({ userPreferences }) {
   const ITEMS_PER_PAGE = 2;
 
   useEffect(() => {
-    fetchPrices();
+    fetchPrices({ useCache: true });
   }, []);
 
-  const fetchPrices = async () => {
+  const fetchPrices = async ({ useCache = false } = {}) => {
     try {
       setLoading(true);
+      if (useCache) {
+        const cached = getCachedData('dashboard_prices');
+        if (cached) {
+          setPrices(cached);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+      }
+
       const data = await priceService.getPrices();
-      setPrices(data?.prices || []);
+      const priceList = data?.prices || [];
+      setPrices(priceList);
+      setCachedData('dashboard_prices', priceList);
       setError(null);
     } catch (err) {
       setError(err.message);
+      if (!useCache) {
+        clearCachedData('dashboard_prices');
+      }
     } finally {
       setLoading(false);
     }
@@ -46,7 +62,7 @@ function PricesSection({ userPreferences }) {
         <h3 className="section-title">Coin Prices</h3>
         <div className="error-state">
           <p>Error loading prices</p>
-          <button onClick={fetchPrices} className="retry-button">Retry</button>
+          <button onClick={() => fetchPrices({ useCache: false })} className="retry-button">Retry</button>
         </div>
       </div>
     );
