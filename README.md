@@ -75,50 +75,6 @@ Frontend runs at `http://localhost:5173` and proxies API calls to `/api/*`.
 
 ---
 
-## Environment Variables
-
-Create `api/.env` (never commit real secrets):
-
-```
-PORT=5001
-MONGODB_URI=...
-JWT_SECRET=...
-CRYPTOPANIC_API_KEY=...
-COINGECKO_API_KEY=...
-OPENROUTER_API_KEY=...
-MEME_API_KEY=...
-FRONTEND_URL=http://localhost:5173
-```
-
-On Vercel, add the same env vars in the project settings (Production + Preview). The backend treats `FRONTEND_URL` plus all `*.vercel.app` origins as valid for CORS.
-
----
-
-## Build & Deployment Workflow
-
-The root `package.json` exposes a helper script that Vercel also uses:
-
-```json
-"vercel-build": "npm --prefix frontend install && npm --prefix frontend run build && rm -rf api/public && cp -R frontend/dist api/public && npm --prefix api install"
-```
-
-Manual build steps:
-1. `npm --prefix frontend run build`
-2. `rm -rf api/public && cp -R frontend/dist api/public`
-3. `npm --prefix api run build` *(not required today; backend is ES modules)*
-4. Commit + push → Vercel deploys automatically because the repo is connected.
-
-`vercel.json` forces all routes (except `/api/*`) through `api/index.js`, so the Express app must serve `api/public/index.html` for SPA navigation. If the static bundle is missing, Vercel returns `text/html` for the requested JS path and browsers show the “Expected a JavaScript module but got text/html” error.
-
-**Tip:** If you ever see that MIME error on production, rebuild + copy `frontend/dist` into `api/public`, commit, push, and re-deploy. Locally you can simulate the hosted build with:
-```bash
-npm run vercel-build
-npm --prefix api run dev
-```
-Then open http://localhost:5001 to confirm the bundled app serves correctly.
-
----
-
 ## Feature Highlights
 
 - **Home page:** marketing hero with CTA, global header, responsive layout, bright green palette.
@@ -136,26 +92,6 @@ Then open http://localhost:5001 to confirm the bundled app serves correctly.
   - In-memory `memoryCache` to avoid DB hits for hot keys.
   - Frontend storage cache (local/session) for auth tokens and dashboard payloads with TTL.
   - Deterministic meme selection ensures the same image for 24 hours per user.
-
----
-
-## Troubleshooting & Verification
-
-1. **Blank dashboard / MIME errors**
-   - Cause: `api/public` missing the latest bundle.
-   - Fix: `npm --prefix frontend run build && rm -rf api/public && cp -R frontend/dist api/public`, commit, redeploy.
-   - On the client, perform a hard refresh (Cmd/Ctrl + Shift + R) to bypass cached filenames.
-
-2. **CORS errors in production**
-   - Ensure `FRONTEND_URL` is set to the deployed origin (e.g., `https://cryptopal-blond.vercel.app`) and redeploy so the CORS whitelist includes it.
-
-3. **API rate limits**
-   - Each backend controller uses `Cache.getOrCreate` + `memoryCache`. Inspect `api/src/utils/logger.js` output to confirm when cached data is served.
-   - For debugging fresh data, optional query params (e.g., `?bypassCache=true`) can be temporarily enabled.
-
-4. **OpenRouter “No endpoints found”**
-   - The AI service cycles through fallback models. Confirm the provided API key has access to those models or update the list in `api/src/services/aiService.js`.
-
 ---
 
 ## Scripts Reference
@@ -164,13 +100,5 @@ Then open http://localhost:5001 to confirm the bundled app serves correctly.
 | --- | --- |
 | `npm run dev:frontend` | Start Vite dev server |
 | `npm run dev:api` | Start Express server with Nodemon |
-| `npm run vercel-build` | Build frontend, copy to `api/public`, install backend deps |
-| `npm --prefix frontend run build` | Build SPA only |
-| `npm --prefix api run lint` *(if configured)* | Lint backend code |
 
 ---
-
-## License
-
-This project was created as part of the Moveo home assignment. Use it for evaluation or personal learning only.
-
