@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
-import { authService } from '../../utils/auth';
+import { authService } from '../../services/authService';
 import './Header.css';
 
 function Header() {

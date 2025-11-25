@@ -6,7 +6,7 @@ import Home from './pages/Home/Home';
 import Auth from './pages/Auth/Auth';
 import Onboarding from './pages/Onboarding/Onboarding';
 import Dashboard from './pages/Dashboard/Dashboard';
-import { authService } from './utils/auth';
+import { authService } from './services/authService';
 import './styles/global.css';
 
 function ProtectedOnboarding({ children }) {

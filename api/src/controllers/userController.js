@@ -1,17 +1,25 @@
-import User from '../models/User.js';
+import {
+  getUserPreferences as fetchUserPreferences,
+  updateUserPreferences as persistUserPreferences,
+} from '../services/userService.js';
 
 // @desc    Get user preferences
 // @route   GET /api/users/preferences
 // @access  Private
 export const getPreferences = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
-
+    const preferences = await fetchUserPreferences(req.user.id);
     res.status(200).json({
       success: true,
-      preferences: user.preferences,
+      preferences,
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
     next(error);
   }
 };
@@ -21,30 +29,19 @@ export const getPreferences = async (req, res, next) => {
 // @access  Private
 export const updatePreferences = async (req, res, next) => {
   try {
-    const { cryptoAssets, investorType, contentTypes } = req.body;
-
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      {
-        preferences: {
-          cryptoAssets: cryptoAssets || [],
-          investorType: investorType || '',
-          contentTypes: contentTypes || [],
-        },
-        onboarded: true,
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
+    const { preferences, onboarded } = await persistUserPreferences(req.user.id, req.body);
     res.status(200).json({
       success: true,
-      preferences: user.preferences,
-      onboarded: user.onboarded,
+      preferences,
+      onboarded,
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
     next(error);
   }
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { authService, API_BASE_URL } from '../../utils/auth';
+import { priceService } from '../../services/priceService';
 import './PriceChart.css';
 
 const TIME_PERIODS = [
@@ -29,30 +29,9 @@ function PriceChart({ coinId, coinName, onPercentageChange }) {
     try {
       setLoading(true);
       setError(null);
-      const token = authService.getToken();
       const targetCoinId = fallbackCoinId || coinId;
-      const response = await fetch(`${API_BASE_URL}/prices/${targetCoinId}/history?days=${days}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        // If this is the original coin and it failed, try fallback
-        if (!fallbackCoinId && coinId !== 'bitcoin' && coinId !== 'ethereum') {
-          // Try Bitcoin first
-          return fetchChartData(days, 'bitcoin', 'Bitcoin');
-        }
-        // If we tried Bitcoin and it failed, try Ethereum
-        if (fallbackCoinId === 'bitcoin' && coinId !== 'ethereum') {
-          return fetchChartData(days, 'ethereum', 'Ethereum');
-        }
-        // All fallbacks exhausted, throw error
-        throw new Error('Failed to fetch price history');
-      }
-
-      const data = await response.json();
-      const prices = data.data?.prices || [];
+      const data = await priceService.getPriceHistory(targetCoinId, days);
+      const prices = data?.prices || [];
       
       // If we're using a fallback, update the fallback state
       if (fallbackCoinId) {

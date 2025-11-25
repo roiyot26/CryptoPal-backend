@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import VoteButtons from './VoteButtons';
 import PriceChart from './PriceChart';
-import { authService, API_BASE_URL } from '../../utils/auth';
+import { priceService } from '../../services/priceService';
 import './SectionStyles.css';
 import './PricesSection.css';
 
@@ -21,23 +21,11 @@ function PricesSection({ userPreferences }) {
   const fetchPrices = async () => {
     try {
       setLoading(true);
-      const token = authService.getToken();
-      const response = await fetch(`${API_BASE_URL}/prices`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch prices');
-      }
-
-      const data = await response.json();
-      setPrices(data.data?.prices || []);
+      const data = await priceService.getPrices();
+      setPrices(data?.prices || []);
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching prices:', err);
     } finally {
       setLoading(false);
     }

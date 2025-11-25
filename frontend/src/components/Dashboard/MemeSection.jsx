@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import VoteButtons from './VoteButtons';
-import { authService, API_BASE_URL } from '../../utils/auth';
+import { memeService } from '../../services/memeService';
 import './SectionStyles.css';
 
 function MemeSection() {
@@ -13,20 +13,9 @@ function MemeSection() {
     try {
       setLoading(true);
       setError('');
-      const token = authService.getToken();
-      const response = await fetch(`${API_BASE_URL}/memes`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch memes');
-      }
-
-      const data = await response.json();
-      setKeyword(data.data?.keyword || '');
-      const memeResult = data.data?.results?.[0] || null;
+      const data = await memeService.getMemes();
+      setKeyword(data?.keyword || '');
+      const memeResult = data?.results?.[0] || null;
       setMeme(memeResult);
     } catch (err) {
       setError(err.message || 'Unable to load memes');

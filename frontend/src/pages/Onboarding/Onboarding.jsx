@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../utils/auth';
+import { authService } from '../../services/authService';
 import ProgressBar from '../../components/Onboarding/ProgressBar';
 import { CONTENT_TYPE_OPTIONS } from '../../constants/contentTypes';
 import './Onboarding.css';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import VoteButtons from './VoteButtons';
-import { authService, API_BASE_URL } from '../../utils/auth';
+import { newsService } from '../../services/newsService';
 import './SectionStyles.css';
 import './NewsSection.css';
 
@@ -19,23 +19,11 @@ function NewsSection() {
   const fetchNews = async () => {
     try {
       setLoading(true);
-      const token = authService.getToken();
-      const response = await fetch(`${API_BASE_URL}/news`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch news');
-      }
-
-      const data = await response.json();
-      setNews(data.data?.results || []);
+      const data = await newsService.getNews();
+      setNews(data?.results || []);
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching news:', err);
     } finally {
       setLoading(false);
     }

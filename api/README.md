@@ -1,6 +1,6 @@
 # CryptoPal Backend API
 
-Node.js/Express backend with MongoDB and JWT authentication.
+Node.js/Express backend with MongoDB, JWT authentication, and a dedicated service layer that keeps controllers slim.
 
 ## Setup
 
@@ -68,13 +68,15 @@ api/
 │   ├── config/
 │   │   └── database.js       # MongoDB connection
 │   ├── controllers/
-│   │   ├── authController.js # Auth logic
-│   │   └── userController.js # User preferences logic
+│   │   ├── *.js              # Validate/shape HTTP requests, delegate to services
+│   ├── services/
+│   │   ├── authService.js    # Auth domain logic + DB interactions
+│   │   └── price/news/...    # External API orchestration + caching
 │   ├── middleware/
 │   │   ├── auth.js           # JWT authentication middleware
 │   │   └── errorHandler.js   # Error handling middleware
 │   ├── models/
-│   │   └── User.js            # User mongoose model
+│   │   └── *.js              # User, Vote, Cache models
 │   ├── routes/
 │   │   ├── auth.js           # Auth routes
 │   │   └── users.js          # User routes

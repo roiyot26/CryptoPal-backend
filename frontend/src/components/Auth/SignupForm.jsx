@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authService } from '../../utils/auth';
+import { authService } from '../../services/authService';
 import './AuthForm.css';
 
 function SignupForm({ onSuccess, onError }) {

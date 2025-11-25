@@ -1,16 +1,46 @@
-# React + Vite
+# CryptoPal Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite single-page application that renders the personalized dashboard, onboarding, and auth flows for CryptoPal.
 
-Currently, two official plugins are available:
+## Key Folders
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+frontend/src
+├── components/     # UI widgets (dashboard sections, header, auth forms)
+├── pages/          # Route-level screens (Home, Auth, Onboarding, Dashboard)
+├── services/       # httpClient plus feature-specific API clients
+├── contexts/       # Theme provider, etc.
+├── providers/      # Context wrappers
+└── styles/         # Global styles + CSS modules
+```
 
-## React Compiler
+## HTTP / Service Layer
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `services/httpClient.js` centralizes fetch calls, attaches JWT headers, and normalizes JSON/error handling.
+- `services/authService.js` owns token + user persistence (localStorage) and configures the HTTP client with token + 401 handlers.
+- Feature services (`priceService`, `newsService`, `aiService`, `memeService`, `voteService`) expose semantic methods consumed by dashboard components instead of calling `fetch` directly. This keeps components focused on rendering logic and simplifies future caching or data-library adoption.
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+Vite runs at `http://localhost:5173` and proxies `/api/*` to the Express backend.
+
+To build the production bundle (copied into `api/public` during the root `vercel-build` step):
+
+```bash
+npm run build
+```
+
+## Auth Helpers
+
+UI code should import `authService` from `src/services/authService`. It exposes:
+
+- `login`, `signup`, `logout`, `getCurrentUser`
+- `savePreferences`, `getPreferences`
+- `getToken`, `getUser`, `subscribe` (event-based updates for header/dashboard)
+
+This mirrors the backend service organization and prevents components from reaching into `localStorage` directly.

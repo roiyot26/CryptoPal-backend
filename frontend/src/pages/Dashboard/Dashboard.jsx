@@ -3,7 +3,7 @@ import NewsSection from '../../components/Dashboard/NewsSection';
 import PricesSection from '../../components/Dashboard/PricesSection';
 import AISection from '../../components/Dashboard/AISection';
 import MemeSection from '../../components/Dashboard/MemeSection';
-import { authService } from '../../utils/auth';
+import { authService } from '../../services/authService';
 import { CONTENT_TYPE_OPTIONS, DEFAULT_CONTENT_TYPES } from '../../constants/contentTypes';
 import './Dashboard.css';
 

@@ -10,8 +10,8 @@ CryptoPal is a full-stack web app that learns each investor’s style through on
 
 | Layer | Details |
 | --- | --- |
-| Frontend | React + Vite, React Router, Context API (theme + auth), Recharts, CSS modules |
-| Backend | Node.js + Express, JWT auth, bcrypt, custom caching layer (Mongo cache + in-memory) |
+| Frontend | React + Vite, React Router, Context API (theme + auth), Recharts, CSS modules, shared HTTP/service layer |
+| Backend | Node.js + Express, JWT auth, bcrypt, custom caching layer (Mongo cache + in-memory), controller/service separation |
 | Database | MongoDB Atlas (users, preferences, votes, cache metadata) |
 | External APIs | CryptoPanic (news), CoinGecko (prices + charts), OpenRouter (AI insight), APILeague (memes) |
 | Deployment | Vercel (single serverless function that serves both API + static frontend) |
@@ -22,6 +22,7 @@ Key behaviors:
 - Dashboard sections render only the content types selected by the user and can be toggled on the fly.
 - Votes are persisted with `contentType`, `contentId`, and derived keywords for future model training.
 - Multi-layer caching (Mongo + in-memory + client-side storage) keeps API usage low.
+- Controllers (Express) and React components talk to dedicated domain services, keeping transport logic thin and re-usable.
 
 ---
 
@@ -33,7 +34,8 @@ MoveoHomeTask/
 │   ├── public/           # Copied frontend `dist` output (served statically)
 │   └── src/
 │       ├── config/       # Mongo connection, cache config
-│       ├── controllers/  # Auth, onboarding, news, prices, AI, memes, votes
+│       ├── controllers/  # HTTP request handling only
+│       ├── services/     # Domain logic (auth, users, prices, news, AI, memes, votes)
 │       ├── middleware/   # Auth guard, error handler
 │       ├── models/       # User, Vote, Cache schemas
 │       └── utils/        # API clients, logger, memory cache
@@ -41,7 +43,8 @@ MoveoHomeTask/
 │   ├── src/components/   # Header, dashboard sections, onboarding, etc.
 │   ├── src/context/      # Theme + auth providers
 │   ├── src/pages/        # Home, Auth, Onboarding, Dashboard
-│   └── src/utils/        # Auth helpers, storage cache
+│   ├── src/services/     # httpClient + domain APIs (auth, prices, news, AI, memes, votes)
+│   └── src/utils/        # Shared helpers (styles, constants, etc.)
 ├── package.json          # Monorepo scripts (dev + Vercel build)
 └── vercel.json           # Routes `api/index.js` as the only serverless entry
 ```
@@ -151,7 +154,7 @@ Then open http://localhost:5001 to confirm the bundled app serves correctly.
    - For debugging fresh data, optional query params (e.g., `?bypassCache=true`) can be temporarily enabled.
 
 4. **OpenRouter “No endpoints found”**
-   - The controller cycles through fallback models. Confirm the provided API key has access to those models or update the list in `api/src/controllers/aiController.js`.
+   - The AI service cycles through fallback models. Confirm the provided API key has access to those models or update the list in `api/src/services/aiService.js`.
 
 ---
 

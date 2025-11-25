@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import VoteButtons from './VoteButtons';
-import { authService, API_BASE_URL } from '../../utils/auth';
+import { aiService } from '../../services/aiService';
 import './SectionStyles.css';
 import './AISection.css';
 
@@ -16,23 +16,11 @@ function AISection() {
   const fetchInsight = async () => {
     try {
       setLoading(true);
-      const token = authService.getToken();
-      const response = await fetch(`${API_BASE_URL}/ai/insight`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch AI insight');
-      }
-
-      const data = await response.json();
-      setInsight(data.data);
+      const data = await aiService.getInsight();
+      setInsight(data);
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching AI insight:', err);
     } finally {
       setLoading(false);
     }
